@@ -9,6 +9,13 @@ import Foundation
 import Combine
 
 class ATNetworkService: ATNetworkServiceProtocol {
+    
+    private let session: ATURLSession
+    
+    init(session: ATURLSession) {
+        self.session = session
+    }
+    
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type, completion: @escaping (Result<T, ATError>) -> Void) {
         Task {
             do {
