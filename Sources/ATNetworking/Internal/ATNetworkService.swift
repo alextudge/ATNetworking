@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 class ATNetworkService: ATNetworkServiceProtocol {
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type, completion: @escaping (Result<T, ATError>) -> Void) {
@@ -16,12 +17,18 @@ class ATNetworkService: ATNetworkServiceProtocol {
                 completion(.success(object))
             } catch let error as ATError {
                 completion(.failure(error))
-            } catch is DecodingError {
-                completion(.failure(.invalidUrl))
+            } catch let error as DecodingError {
+                completion(.failure(.decoding(message: error.errorDescription)))
             } catch {
                 completion(.failure(.invalidUrl))
             }
         }
+    }
+    
+    func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type) -> AnyPublisher<T, ATError> {
+        Future {
+            try await self.request(endpoint: endpoint, type: type)
+        }.eraseToAnyPublisher()
     }
     
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type) async throws -> T {
@@ -44,21 +51,10 @@ private extension ATNetworkService {
             guard let response = response as? HTTPURLResponse else {
                 throw ATError.invalidUrl
             }
-            switch response.statusCode {
-            case 200...299:
-//                guard let decodedResponse = try? JSONDecoder().decode(responseModel, from: data) else {
-//                    return .failure(.decode)
-//                }
-                return data
-            case 401:
-                throw ATError.invalidUrl
-//                return .failure(.unauthorized)
-            default:
-                throw ATError.invalidUrl
-//                return .failure(.unexpectedStatusCode)
-            }
+            try processStatusCode(response.statusCode)
+            return data
         } catch {
-            throw ATError.invalidUrl
+            throw error
         }
     }
     
@@ -67,6 +63,17 @@ private extension ATNetworkService {
             return try JSONDecoder().decode(type, from: data)
         } catch {
             throw error
+        }
+    }
+    
+    func processStatusCode(_ code: Int) throws {
+        switch code {
+        case 200...299:
+            break
+        case 401:
+            throw ATError.unauthorised
+        default:
+            throw ATError.unknown
         }
     }
 }

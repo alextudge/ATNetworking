@@ -8,5 +8,8 @@
 import Foundation
 
 public enum ATError: Error {
-    case invalidUrl
+    case invalidUrl,
+         unauthorised,
+         unknown,
+         decoding(message: String?)
 }
