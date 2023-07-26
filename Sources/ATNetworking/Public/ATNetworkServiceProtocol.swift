@@ -7,6 +7,7 @@
 
 import Foundation
 
-protocol ATNetworkServiceProtocol: AnyObject {
-    func request<T: Decodable>(endpoint: String, type: T.Type) -> Result<Error, T>
+public protocol ATNetworkServiceProtocol: AnyObject {
+    func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type, completion: @escaping (Result<T, ATError>) -> Void)
+    func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type) async throws -> T
 }

@@ -7,7 +7,12 @@
 
 import Foundation
 
-protocol ATEndpoint {
+/**
+ An interface for providing all required parts of a network request.
+ 
+ Extend this protocol to implement defaults, and conform enums to it to build up sets of endpoints.
+ */
+public protocol ATEndpoint {
     var scheme: String { get }
     var host: String { get }
     var path: String { get }
