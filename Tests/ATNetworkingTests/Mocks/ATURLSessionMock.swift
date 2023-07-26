@@ -11,12 +11,13 @@ import Foundation
 class ATURLSessionMock: ATURLSession {
     
     var error: ATError?
-    var data: Data?
+    var returnedData: Data?
+    var statusCode = 200
     
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        if let data {
-            let urlResponse = URLResponse(url: request.url!, mimeType: nil, expectedContentLength: 10, textEncodingName: nil)
-            return (data, urlResponse)
+        if let returnedData {
+            let urlResponse = HTTPURLResponse(url: request.url!, statusCode: statusCode, httpVersion: nil, headerFields: [:])!
+            return (returnedData, urlResponse as URLResponse)
         } else {
             throw error ?? .unknown
         }

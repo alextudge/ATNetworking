@@ -34,7 +34,7 @@ class ATNetworkService: ATNetworkServiceProtocol {
     
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type) -> AnyPublisher<T, ATError> {
         Future {
-            try await self.request(endpoint: endpoint, type: type)
+            return try await self.request(endpoint: endpoint, type: type)
         }.eraseToAnyPublisher()
     }
     
@@ -54,7 +54,7 @@ private extension ATNetworkService {
             throw ATError.invalidUrl
         }
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await session.data(for: request)
             guard let response = response as? HTTPURLResponse else {
                 throw ATError.invalidUrl
             }
@@ -69,7 +69,7 @@ private extension ATNetworkService {
         do {
             return try JSONDecoder().decode(type, from: data)
         } catch {
-            throw error
+            throw ATError.decoding(message: error.localizedDescription)
         }
     }
     

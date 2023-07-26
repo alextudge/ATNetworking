@@ -13,6 +13,6 @@ protocol ATURLSession {
 
 extension URLSession: ATURLSession {
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        return try await self.data(for: request, delegate: nil)
+        try await self.data(for: request, delegate: nil)
     }
 }

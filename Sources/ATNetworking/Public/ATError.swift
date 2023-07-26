@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum ATError: Error {
+public enum ATError: Error, Equatable {
     case invalidUrl,
          unauthorised,
          unknown,
