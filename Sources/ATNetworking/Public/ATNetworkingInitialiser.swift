@@ -7,6 +7,14 @@
 
 import Foundation
 
+/**
+ An object used for initialising the data service with a URLSession.
+ 
+ This object is just a wrapper to avoid exposing implementation details publically.
+ 
+     let networkService = ATNetworkingInitialiser().generateNetworkService(session: URLSession.shared)
+ 
+ */
 public class ATNetworkingInitialiser {
     
     public init() {}
