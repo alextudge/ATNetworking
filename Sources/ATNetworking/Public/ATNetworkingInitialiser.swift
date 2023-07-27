@@ -8,7 +8,7 @@
 import Foundation
 
 public class ATNetworkingInitialiser {
-    func generateNetworkService() -> ATNetworkServiceProtocol {
+    public func generateNetworkService() -> ATNetworkServiceProtocol {
         let networkService = ATNetworkService(session: URLSession.shared)
         return networkService
     }
