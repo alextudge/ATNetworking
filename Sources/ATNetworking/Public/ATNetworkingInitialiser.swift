@@ -8,7 +8,7 @@
 import Foundation
 
 /**
- An object used for initialising the data service with a URLSession.
+ An object used for initialising a network service instance with a URLSession.
  
  This object is just a wrapper to avoid exposing implementation details publically.
  
