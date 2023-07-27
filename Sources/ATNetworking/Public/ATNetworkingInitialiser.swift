@@ -15,7 +15,7 @@ import Foundation
      let networkService = ATNetworkingInitialiser().generateNetworkService(session: URLSession.shared)
  
  */
-public class ATNetworkingInitialiser {
+public final class ATNetworkingInitialiser {
     
     public init() {}
     

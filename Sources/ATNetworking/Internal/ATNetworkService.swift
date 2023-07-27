@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-class ATNetworkService: ATNetworkServiceProtocol {
+final class ATNetworkService: ATNetworkServiceProtocol {
     
     private let session: ATURLSession
     
