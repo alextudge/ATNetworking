@@ -9,6 +9,8 @@ import Foundation
 
 /// Error types returned by the network service
 public enum ATError: Error, Equatable {
+    
+    /// Represents either an error formatting the URL, or a missing/invalid response from the call
     case invalidUrl
     
     /// Represents a network response with code 401
