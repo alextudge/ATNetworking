@@ -24,10 +24,8 @@ class ATNetworkService: ATNetworkServiceProtocol {
                 completion(.success(object))
             } catch let error as ATError {
                 completion(.failure(error))
-            } catch let error as DecodingError {
-                completion(.failure(.decoding(message: error.errorDescription)))
             } catch {
-                completion(.failure(.invalidUrl))
+                completion(.failure(.unknown))
             }
         }
     }

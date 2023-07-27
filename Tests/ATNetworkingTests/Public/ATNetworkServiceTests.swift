@@ -209,4 +209,94 @@ extension ATNetworkServiceTests {
 
 // MARK: Closure
 extension ATNetworkServiceTests {
+    func test_closure_networkError() {
+        urlSessionMock.error = .invalidUrl
+        var returnedError: Error?
+        let expectation = expectation(description: "Error returned")
+        sut.request(endpoint: ATEndpointMock.endpoint, type: String.self) { result in
+            switch result {
+            case .success:
+                break
+            case .failure(let failure):
+                returnedError = failure
+                expectation.fulfill()
+            }
+        }
+        wait(for: [expectation], timeout: 0.5)
+        XCTAssertNotNil(returnedError)
+    }
+    
+    func test_closure_networkSuccess() {
+        urlSessionMock.error = nil
+        urlSessionMock.returnedData = try? JSONEncoder().encode("string")
+        var returnedError: Error?
+        let expectation = expectation(description: "No error returned")
+        sut.request(endpoint: ATEndpointMock.endpoint, type: String.self) { result in
+            switch result {
+            case .success:
+                break
+            case .failure(let failure):
+                returnedError = failure
+            }
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 0.5)
+        XCTAssertNil(returnedError)
+    }
+    
+    func test_closure_statusCode_unauthorised() {
+        urlSessionMock.error = nil
+        urlSessionMock.statusCode = 401
+        urlSessionMock.returnedData = try? JSONEncoder().encode("string")
+        var returnedError: ATError?
+        let expectation = expectation(description: "Error returned")
+        sut.request(endpoint: ATEndpointMock.endpoint, type: String.self) { result in
+            switch result {
+            case .success:
+                break
+            case .failure(let failure):
+                returnedError = failure
+                expectation.fulfill()
+            }
+        }
+        wait(for: [expectation], timeout: 0.5)
+        XCTAssertEqual(returnedError, .unauthorised)
+    }
+    
+    func test_closure_statusCode_unknown() {
+        urlSessionMock.error = nil
+        urlSessionMock.statusCode = 1023
+        urlSessionMock.returnedData = try? JSONEncoder().encode("string")
+        var returnedError: ATError?
+        let expectation = expectation(description: "Error returned")
+        sut.request(endpoint: ATEndpointMock.endpoint, type: String.self) { result in
+            switch result {
+            case .success:
+                break
+            case .failure(let failure):
+                returnedError = failure
+                expectation.fulfill()
+            }
+        }
+        wait(for: [expectation], timeout: 0.5)
+        XCTAssertEqual(returnedError, .unknown)
+    }
+    
+    func test_closure_decodeError() {
+        urlSessionMock.error = nil
+        urlSessionMock.returnedData = try? JSONEncoder().encode("string")
+        var returnedError: ATError?
+        let expectation = expectation(description: "Error returned")
+        sut.request(endpoint: ATEndpointMock.endpoint, type: Int.self) { result in
+            switch result {
+            case .success:
+                break
+            case .failure(let failure):
+                returnedError = failure
+            }
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 0.5)
+        XCTAssertEqual(returnedError, .decoding(message: "The data couldn’t be read because it isn’t in the correct format."))
+    }
 }
