@@ -11,9 +11,12 @@ import Combine
 final class ATNetworkService: ATNetworkServiceProtocol {
     
     private let session: ATURLSession
+    private let decoder: JSONDecoder
     
-    init(session: ATURLSession) {
+    init(session: ATURLSession, 
+         decoder: JSONDecoder) {
         self.session = session
+        self.decoder = decoder
     }
     
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type, completion: @escaping (Result<T, ATError>) -> Void) {
@@ -92,7 +95,7 @@ private extension ATNetworkService {
     
     func decode<T: Decodable>(data: Data, type: T.Type) throws -> T {
         do {
-            return try JSONDecoder().decode(type, from: data)
+            return try decoder.decode(type, from: data)
         } catch {
             throw ATError.decoding(message: error.localizedDescription)
         }
