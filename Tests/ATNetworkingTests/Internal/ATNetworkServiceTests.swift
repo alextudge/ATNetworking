@@ -18,7 +18,7 @@ final class ATNetworkServiceTests: XCTestCase {
     override func setUp() {
         super.setUp()
         urlSessionMock = ATURLSessionMock()
-        sut = ATNetworkService(session: urlSessionMock)
+        sut = ATNetworkService(session: urlSessionMock, decoder: JSONDecoder())
     }
     
     override func tearDown() {

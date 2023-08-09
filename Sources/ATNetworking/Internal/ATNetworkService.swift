@@ -12,52 +12,78 @@ final class ATNetworkService: ATNetworkServiceProtocol {
     
     private let session: ATURLSession
     private let decoder: JSONDecoder
+    private var cancellableTasks = Set<Task<Void, Never>>()
     
-    init(session: ATURLSession, 
+    init(session: ATURLSession,
          decoder: JSONDecoder) {
         self.session = session
         self.decoder = decoder
     }
     
+    deinit {
+        cancellableTasks.forEach { $0.cancel() }
+    }
+}
+
+// MARK: Closure
+extension ATNetworkService {
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type, completion: @escaping (Result<T, ATError>) -> Void) {
-        Task {
+        cancellableTasks.insert(Task { [weak self] in
             do {
-                let data = try await makeRequest(endpoint: endpoint)
-                let object = try decode(data: data, type: type)
+                guard let data = try await self?.makeRequest(endpoint: endpoint),
+                      let object = try self?.decode(data: data, type: type) else {
+                    throw ATError.unknown
+                }
                 completion(.success(object))
             } catch let error as ATError {
                 completion(.failure(error))
             } catch {
                 completion(.failure(.unknown))
             }
-        }
+        })
     }
     
     func request(endpoint: ATEndpoint, completion: @escaping (Result<Data, ATError>) -> Void) {
-        Task {
+        cancellableTasks.insert(Task { [weak self] in
             do {
-                let data = try await makeRequest(endpoint: endpoint)
+                guard let data = try await self?.makeRequest(endpoint: endpoint) else {
+                    throw ATError.unknown
+                }
                 completion(.success(data))
             } catch let error as ATError {
                 completion(.failure(error))
             } catch {
                 completion(.failure(.unknown))
             }
-        }
+        })
     }
-    
+}
+
+// MARK: Combine
+extension ATNetworkService {
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type) -> AnyPublisher<T, ATError> {
-        Future {
-            return try await self.request(endpoint: endpoint, type: type)
+        Future { [weak self] in
+            if let result = try await self?.request(endpoint: endpoint, type: type) {
+                return result
+            } else {
+                throw ATError.unknown
+            }
         }.eraseToAnyPublisher()
     }
     
     func request(endpoint: ATEndpoint) -> AnyPublisher<Data, ATError> {
-        Future {
-            return try await self.request(endpoint: endpoint)
+        Future { [weak self] in
+            if let result = try await self?.request(endpoint: endpoint) {
+                return result
+            } else {
+                throw ATError.unknown
+            }
         }.eraseToAnyPublisher()
     }
-    
+}
+
+// MARK: Async/Await
+extension ATNetworkService {
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type) async throws -> T {
         do {
             let data = try await makeRequest(endpoint: endpoint)

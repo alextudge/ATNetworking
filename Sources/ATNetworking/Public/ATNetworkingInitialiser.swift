@@ -24,7 +24,8 @@ public final class ATNetworkingInitialiser {
     
     public func generateNetworkService(session: URLSession,
                                        decoder: JSONDecoder = JSONDecoder()) -> ATNetworkServiceProtocol {
-        let networkService = ATNetworkService(session: session)
+        let networkService = ATNetworkService(session: session,
+                                              decoder: decoder)
         return networkService
     }
 }
