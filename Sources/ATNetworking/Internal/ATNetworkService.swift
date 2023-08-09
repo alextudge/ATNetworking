@@ -30,9 +30,28 @@ final class ATNetworkService: ATNetworkServiceProtocol {
         }
     }
     
+    func request(endpoint: ATEndpoint, completion: @escaping (Result<Data, ATError>) -> Void) {
+        Task {
+            do {
+                let data = try await makeRequest(endpoint: endpoint)
+                completion(.success(data))
+            } catch let error as ATError {
+                completion(.failure(error))
+            } catch {
+                completion(.failure(.unknown))
+            }
+        }
+    }
+    
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type) -> AnyPublisher<T, ATError> {
         Future {
             return try await self.request(endpoint: endpoint, type: type)
+        }.eraseToAnyPublisher()
+    }
+    
+    func request(endpoint: ATEndpoint) -> AnyPublisher<Data, ATError> {
+        Future {
+            return try await self.request(endpoint: endpoint)
         }.eraseToAnyPublisher()
     }
     
@@ -40,6 +59,14 @@ final class ATNetworkService: ATNetworkServiceProtocol {
         do {
             let data = try await makeRequest(endpoint: endpoint)
             return try decode(data: data, type: type)
+        } catch {
+            throw error
+        }
+    }
+    
+    func request(endpoint: ATEndpoint) async throws -> Data {
+        do {
+            return try await makeRequest(endpoint: endpoint)
         } catch {
             throw error
         }

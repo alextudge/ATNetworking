@@ -17,6 +17,7 @@ public protocol ATNetworkServiceProtocol: AnyObject {
      - Parameter completion: An escaping closure of type `Result<T, ATError>`
      */
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type, completion: @escaping (Result<T, ATError>) -> Void)
+    func request(endpoint: ATEndpoint, completion: @escaping (Result<Data, ATError>) -> Void)
     
     /**
      Make a network call with a `Combine` publisher.
@@ -26,6 +27,7 @@ public protocol ATNetworkServiceProtocol: AnyObject {
      - Returns: A publisher containing the decoded response or any errors.
      */
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type) -> AnyPublisher<T, ATError>
+    func request(endpoint: ATEndpoint) -> AnyPublisher<Data, ATError>
     
     /**
      Make a network call with aync.
@@ -38,4 +40,5 @@ public protocol ATNetworkServiceProtocol: AnyObject {
      - Returns: The decoded object from a successful response.
      */
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type) async throws -> T
+    func request(endpoint: ATEndpoint) async throws -> Data
 }
