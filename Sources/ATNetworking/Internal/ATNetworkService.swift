@@ -21,14 +21,16 @@ final class ATNetworkService: ATNetworkServiceProtocol {
     }
     
     deinit {
-        cancellableTasks.forEach { $0.cancel() }
+        cancellableTasks.forEach {
+            $0.cancel()
+        }
     }
 }
 
 // MARK: Closure
 extension ATNetworkService {
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type, completion: @escaping (Result<T, ATError>) -> Void) {
-        cancellableTasks.insert(Task { [weak self] in
+        let task = Task { [weak self] in
             do {
                 guard let data = try await self?.makeRequest(endpoint: endpoint),
                       let object = try self?.decode(data: data, type: type) else {
@@ -40,11 +42,12 @@ extension ATNetworkService {
             } catch {
                 completion(.failure(.unknown))
             }
-        })
+        }
+        cancellableTasks.insert(task)
     }
     
     func request(endpoint: ATEndpoint, completion: @escaping (Result<Data, ATError>) -> Void) {
-        cancellableTasks.insert(Task { [weak self] in
+        let task = Task { [weak self] in
             do {
                 guard let data = try await self?.makeRequest(endpoint: endpoint) else {
                     throw ATError.unknown
@@ -55,7 +58,8 @@ extension ATNetworkService {
             } catch {
                 completion(.failure(.unknown))
             }
-        })
+        }
+        cancellableTasks.insert(task)
     }
 }
 
@@ -86,8 +90,7 @@ extension ATNetworkService {
 extension ATNetworkService {
     func request<T: Decodable>(endpoint: ATEndpoint, type: T.Type) async throws -> T {
         do {
-            let data = try await makeRequest(endpoint: endpoint)
-            return try decode(data: data, type: type)
+            return try await decode(data: request(endpoint: endpoint), type: type)
         } catch {
             throw error
         }
@@ -102,7 +105,7 @@ extension ATNetworkService {
     }
 }
 
-private extension ATNetworkService {
+private extension ATNetworkService { 
     func makeRequest(endpoint: ATEndpoint) async throws -> Data {
         guard let request = endpoint.urlRequest() else {
             throw ATError.invalidUrl
